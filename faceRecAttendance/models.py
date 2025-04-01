@@ -18,26 +18,23 @@ class User(models.Model):
     password = models.CharField(max_length=254)
     role = models.CharField(max_length=12, choices=ROLE_CHOICES, default='student')
     photo = models.ImageField(upload_to='images/')
-    face_embedding = models.BinaryField(null=True, blank=True)  # Store face embeddings
+    face_embedding = models.BinaryField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.role})"
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Save the image first to get the file path
-
+        super().save(*args, **kwargs)
         if self.photo:
-            # Ensure the file is saved before processing
             file_path = self.photo.path
 
             if os.path.exists(file_path):
-                # Process face embedding when a photo is uploaded
                 image = face_recognition.load_image_file(file_path)
                 encoding = face_recognition.face_encodings(image)
 
                 if encoding:
-                    self.face_embedding = encoding[0].tobytes()  # Convert to bytes and store
-                    super().save(update_fields=['face_embedding'])  # Save embedding separately
+                    self.face_embedding = encoding[0].tobytes()
+                    super().save(update_fields=['face_embedding'])
 
 
 class AttendanceRecord(models.Model):
@@ -83,4 +80,4 @@ class AttendanceRecord(models.Model):
             return '11:00-14:00'
         elif time(15, 0) <= current_time < time(18, 0):
             return '15:00-18:00'
-        return None  # Outside allowed time slots
+        return None
